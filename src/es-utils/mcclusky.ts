@@ -51,7 +51,7 @@ export function computeMcClusky(
       mintermTables[iteration - 1].slice(i + 1).forEach((otherRow) => {
         // check if bit difference is 1
         let bitDifferences = getBitDifferences(row.bits, otherRow.bits);
-        if (bitDifferences.length > 1) return;
+        if (bitDifferences.length != 1) return;
 
         // add row to next table
         mintermTables[iteration].push({
@@ -67,6 +67,14 @@ export function computeMcClusky(
         otherRow.combined = true;
       });
     });
+
+    // remove duplicate prime implicants
+    mintermTables[iteration] = mintermTables[iteration].filter(
+      (row, index) =>
+        mintermTables[iteration].findIndex(
+          (otherRow) => otherRow.bits.every((bit, index) => bit == row.bits[index])
+        ) == index
+    );
 
     // check if finished combining
     if (mintermTables[iteration].length == 0) {
