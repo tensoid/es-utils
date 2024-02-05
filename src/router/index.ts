@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import McCluskeyView from '../views/McCluskeyView.vue'
+import Home from '../views/Home.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,6 +8,11 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
+      component: Home
+    },
+    {
+      path: '/quine-mcclusky',
+      name: 'quine-mcclusky',
       component: McCluskeyView
     },
     // {
