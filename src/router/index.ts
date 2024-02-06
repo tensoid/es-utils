@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import McCluskeyView from '../views/McCluskeyView.vue'
-import Home from '../views/Home.vue'
+import HomeView from '../views/HomeView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
+import BaseConverterView from '../views/BaseConverterView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,12 +10,22 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: Home
+      component: HomeView
     },
     {
       path: '/quine-mcclusky',
       name: 'quine-mcclusky',
       component: McCluskeyView
+    },
+    {
+      path: '/base-converter',
+      name: 'base-converter',
+      component: BaseConverterView
+    },
+    {
+      path: "/:catchAll(.*)",
+      name: "NotFound",
+      component: NotFoundView,
     },
     // {
     //   path: '/about',

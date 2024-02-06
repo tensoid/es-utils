@@ -26,8 +26,8 @@
   --color-green: hsla(160, 100%, 37%, 1);
 
   --color-background: var(--vt-c-black);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
+  --color-background-soft: var(--vt-c-black-soft);
+  --color-background-mute: var(--vt-c-black-mute);
 
   --color-text: var(--vt-c-text-dark-1);
 
@@ -37,14 +37,21 @@
 }
 
 #app {
-  margin: 0 auto;
   font-weight: normal;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-  padding: 0;
   background: var(--color-background);
+  width: 100vw;
+  height: 100vh;
 }
 
 * {
