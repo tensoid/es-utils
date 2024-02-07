@@ -210,7 +210,7 @@ onMounted(() => {
       <button @click="renameCurrentCircuit()">Ok</button>
     </div>
 
-    <h1>Quine-McCluskey algorithm</h1>
+    <h1><span style="color: var(--color-highlight);">Quine-McCluskey</span> algorithm</h1>
     <div class="toolbar">
       <ul>
         <li>
@@ -294,10 +294,6 @@ onMounted(() => {
 
 .page-wrapper {
   padding-left: 2rem;
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   flex-direction: column;
 }
 
 .circuit-name-input-dialog {
@@ -338,15 +334,16 @@ onMounted(() => {
     margin: 0;
     padding: 0;
     gap: 1rem;
-
+    
     button,
     select {
-      color: white;
+      color: var(--color-text-soft);
       background-color: transparent;
       border: none;
       cursor: pointer;
 
       option {
+        color: var(--color-text-soft);
         background-color: var(--color-background);
         border: none;
       }
