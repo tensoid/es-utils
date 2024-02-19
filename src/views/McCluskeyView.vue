@@ -242,7 +242,7 @@ onMounted(() => {
                   <image href="@/assets/icons/cross.svg" />
                 </svg>
               </button>
-              <input v-model="circuitSpec.inputs[index]" />
+              <input @input="saveCircuit()" v-model="circuitSpec.inputs[index]" />
             </div>
           </th>
           <th>
@@ -265,7 +265,7 @@ onMounted(() => {
                   <image href="@/assets/icons/cross.svg" />
                 </svg>
               </button>
-              <input v-model="circuitSpec.outputs[index].name" />
+              <input @input="saveCircuit()" v-model="circuitSpec.outputs[index].name" />
             </div>
           </th>
           <th>
