@@ -5,5 +5,20 @@ import Navbar from './components/Navbar.vue'
 
 <template>
   <Navbar />
-  <RouterView />
+  <RouterView v-slot="{ Component }">
+    <transition name="fade" mode="out-in">
+      <component :is="Component" :key="$route.path" />
+    </transition>
+  </RouterView>
 </template>
+
+<style scoped lang="scss">
+  .fade-enter-active {
+    transition: opacity 0.3s;
+  }
+  
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
+</style>
