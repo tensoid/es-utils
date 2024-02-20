@@ -9,7 +9,7 @@ import FeatureCard from '../components/FeatureCard.vue'
     <div class="cards-container">
       <FeatureCard title="Quine-McClusky" route="quine-mcclusky" description="The Quine-McClusky algorithm for 2-level-optimization."></FeatureCard>
       <FeatureCard title="Base Converter" route="base-converter" description="Convert a number from and to any base."></FeatureCard>
-      <FeatureCard title="Coming soon..." route="/" description="Coming soon..."></FeatureCard>
+      <FeatureCard title="Two's complement" route="twos-complement" description="Convert a number from decimal into the Two's complement."></FeatureCard>
       <FeatureCard title="Coming soon..." route="/" description="Coming soon..."></FeatureCard>
       <FeatureCard title="Coming soon..." route="/" description="Coming soon..."></FeatureCard>
       <FeatureCard title="Coming soon..." route="/" description="Coming soon..."></FeatureCard>
@@ -25,6 +25,7 @@ import FeatureCard from '../components/FeatureCard.vue'
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  padding-top: 5%;
 }
 
 .cards-container {
