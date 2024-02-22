@@ -3,6 +3,7 @@ import McCluskeyView from '../views/McCluskeyView.vue'
 import HomeView from '../views/HomeView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import BaseConverterView from '../views/BaseConverterView.vue'
+import TwosComplementView from '../views/TwosComplementView.vue'
 import FSMDesignerView from '../views/FSMDesignerView.vue'
 
 const router = createRouter({
@@ -22,6 +23,11 @@ const router = createRouter({
       path: '/base-converter',
       name: 'base-converter',
       component: BaseConverterView
+    },
+    {
+      path: '/twos-complement',
+      name: 'twos-complement',
+      component: TwosComplementView
     },
     {
       path: '/fsm-designer',
