@@ -1,0 +1,3 @@
+[submodule "logics"]
+	path = logics
+	url = https://github.com/tensoid/logics

@@ -6,6 +6,7 @@
       <li><RouterLink to="/quine-mcclusky">Quine-McCluskey</RouterLink></li>
       <li><RouterLink to="/base-converter">Base Converter</RouterLink></li>
       <li><RouterLink to="/twos-complement">Two's complement</RouterLink></li>
+      <li><RouterLink to="/logics">Logics</RouterLink></li>
     </ul>
   </header>
 </template>
