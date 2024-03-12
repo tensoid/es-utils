@@ -6,7 +6,8 @@ let circuitSpec: Ref<CircuitSpec> = ref({
   inputs: [],
   outputs: [],
   name: "",
-  id: ""
+  id: "",
+  inputDontCares: [],
 });
 
 // Input Table
@@ -90,12 +91,20 @@ const minimizedFunctions = computed(() => {
   });
 });
 
+interface InputDontCarePair {
+  input: string;
+  value: "0" | "1";
+}
+
+type InputDontCare = Array<InputDontCarePair>;
+
 // Save / Load
 interface CircuitSpec {
   inputs: Array<string>;
   outputs: Array<LogicFunction>;
   name: string;
-  id: string
+  id: string;
+  inputDontCares: Array<InputDontCare>;
 }
 
 const circuitRenameDialogOpen = ref(false);
@@ -188,6 +197,14 @@ function newCircuit() {
         name: "F",
         outputs: Array<OutputBit>(8).fill("0"),
       },
+    ],
+    inputDontCares: [
+      [
+        {
+          input: "R",
+          value: "1"
+        }
+      ]
     ],
   };
 }
