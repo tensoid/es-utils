@@ -1,0 +1,3 @@
+fix router issue
+loading screen
+optimize wasm size

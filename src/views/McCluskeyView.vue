@@ -10,6 +10,70 @@ let circuitSpec: Ref<CircuitSpec> = ref({
   inputDontCares: [],
 });
 
+// Input Dont Cares
+const inputDontCareRowIndexes = computed(() => {
+
+  let dontCares = new Set<number>();
+
+  for(let i = 0; i < truthTableRows.value; i++) {
+    let bitString = i.toString(2).padStart(circuitSpec.value.inputs.length, "0");
+
+    circuitSpec.value.inputDontCares.forEach(idc => {
+
+      if (idc.length == 0) return;
+
+      let isDontCare = idc.every(idcPair => {
+        let inputIndex = circuitSpec.value.inputs.findIndex(input => input == idcPair.input);
+        if (inputIndex == -1) return false;
+
+        return bitString[inputIndex] == idcPair.value;
+      });
+
+      if (isDontCare) dontCares.add(i);
+    });
+  }
+
+  return dontCares;
+});
+
+function addInputDontCare() {
+  circuitSpec.value.inputDontCares.push([
+    {
+      input: "?",
+      value: "0"
+    }
+  ]);
+
+  saveCircuit();
+}
+
+function removeInputDontCare(dontCareIndex: number) {
+  circuitSpec.value.inputDontCares.splice(dontCareIndex, 1);
+
+  saveCircuit();
+}
+
+function addDontCarePair(dontCareIndex: number) {
+
+  circuitSpec.value.inputDontCares[dontCareIndex].push({
+    input: "?",
+    value: "0"
+  });
+
+  saveCircuit();
+}
+
+function removeDontCarePair(dontCareIndex: number, pairIndex: number) {
+
+  circuitSpec.value.inputDontCares[dontCareIndex].splice(pairIndex, 1);
+
+  if (circuitSpec.value.inputDontCares[dontCareIndex].length == 0) {
+    removeInputDontCare(dontCareIndex);
+  }
+
+  saveCircuit();
+}
+
 // Input Table
 const truthTableRows = computed(() =>
   Math.pow(2, circuitSpec.value.inputs.length)
@@ -75,18 +139,26 @@ function toggleBit(colIndex: number, rowIndex: number) {
 // Results
 const minimizedFunctions = computed(() => {
   return circuitSpec.value.outputs.map((func) => {
-    const minterms = new Set(
+    let minterms = new Set(
       func.outputs.reduce(
         (terms, bit, index) => (bit == "1" ? [...terms, index] : terms),
         [] as Array<number>
       )
     );
-    const dontCares = new Set(
+
+    let dontCares = new Set(
       func.outputs.reduce(
         (terms, bit, index) => (bit == "X" ? [...terms, index] : terms),
         [] as Array<number>
       )
     );
+
+    // Merge dont cares with input dont care rows
+    inputDontCareRowIndexes.value.forEach(ri => dontCares.add(ri));
+
+    // remove new dont cares from minterms
+    dontCares.forEach(dc => minterms.delete(dc));
+
     return computeMcClusky(circuitSpec.value.inputs, minterms, dontCares);
   });
 });
@@ -198,14 +270,7 @@ function newCircuit() {
         outputs: Array<OutputBit>(8).fill("0"),
       },
     ],
-    inputDontCares: [
-      [
-        {
-          input: "R",
-          value: "1"
-        }
-      ]
-    ],
+    inputDontCares: [],
   };
 }
 
@@ -266,11 +331,13 @@ onMounted(() => {
             <button class="add-button" @click="addInput">+</button>
           </th>
         </tr>
-        <tr v-for="rowIndex in truthTableRows">
-          <td class="bit" v-for="colIndex in circuitSpec.inputs.length">
-            {{ ((rowIndex - 1) >> (circuitSpec.inputs.length - colIndex)) & 1 }}
-          </td>
-        </tr>
+        <template v-for="rowIndex in truthTableRows">
+          <tr v-if="!inputDontCareRowIndexes.has(rowIndex - 1)">
+            <td class="bit" v-for="colIndex in circuitSpec.inputs.length">
+              {{ ((rowIndex - 1) >> (circuitSpec.inputs.length - colIndex)) & 1 }}
+            </td>
+          </tr>
+        </template>
       </table>
 
       <table class="outputs-table">
@@ -289,16 +356,33 @@ onMounted(() => {
             <button class="add-button" @click="addLogicFunction">+</button>
           </th>
         </tr>
-        <tr v-for="rowIndex in truthTableRows">
-          <td
-            class="bit"
-            @click="toggleBit(colIndex, rowIndex)"
-            v-for="(func, colIndex) in circuitSpec.outputs"
-          >
-            {{ func.outputs[rowIndex - 1] }}
-          </td>
-        </tr>
+        <template v-for="rowIndex in truthTableRows">
+          <tr v-if="!inputDontCareRowIndexes.has(rowIndex - 1)">
+            <td
+              class="bit"
+              @click="toggleBit(colIndex, rowIndex)"
+              v-for="(func, colIndex) in circuitSpec.outputs"
+            >
+              {{ func.outputs[rowIndex - 1] }}
+            </td>
+          </tr>
+        </template>
       </table>
+    </div>
+
+    <h3>Input Dont Cares</h3>
+
+    <div class="input-dont-cares">
+      <div class="input-dont-care" v-for="(inputDontCare, dontCareIndex) in circuitSpec.inputDontCares">
+        <div class="input-dont-care-pair" v-for="(dontCarePair, pairIndex) in inputDontCare">
+          <input type="text" v-model="dontCarePair.input">
+          =
+          <input type="text" v-model="dontCarePair.value">
+          <button class="remove-pair-button" @click="removeDontCarePair(dontCareIndex, pairIndex)">-</button>
+        </div>
+        <button class="add-pair-button" @click="addDontCarePair(dontCareIndex)">+</button>
+      </div>
+      <button class="add-dont-care-button" @click="addInputDontCare">+</button>
     </div>
 
     <p v-for="(func, index) in minimizedFunctions">
@@ -412,7 +496,6 @@ onMounted(() => {
 
         .remove-button {
           background-color: transparent;
-          color: white;
           border: none;
           padding: 1px;
           cursor: pointer;
@@ -438,6 +521,59 @@ onMounted(() => {
     .bit {
       text-align: center;
       user-select: none;
+    }
+  }
+}
+
+.input-dont-cares {
+
+  display: flex;
+  flex-direction: row;
+  width: max-content;
+  gap: 2rem;
+
+  padding: 1rem;
+  border: 1px solid white;
+
+  button {
+    background-color: transparent;
+    cursor: pointer;
+    transition: 0.3s;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.164);
+    }
+  }
+  
+  .add-dont-care-button {
+    border: 1px solid rgb(118, 255, 118);
+  }
+  
+  .input-dont-care {
+    
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    
+    .add-pair-button {
+      margin-top: 1rem;
+      border: 1px solid rgb(118, 255, 118);
+    }
+
+    .input-dont-care-pair {
+
+      display: flex;
+      gap: 0.3rem;
+
+      .remove-pair-button {
+        border: 1px solid rgb(255, 87, 87);
+      }
+
+      input {
+        background-color: transparent;
+        border: 1px solid white;
+        width: 3rem;
+      }
     }
   }
 }
