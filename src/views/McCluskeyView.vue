@@ -10,15 +10,50 @@ let circuitSpec: Ref<CircuitSpec> = ref({
 });
 
 // Input Table
-const truthTableRows = computed(() =>
-  Math.pow(2, circuitSpec.value.inputs.length)
+const truthTableRows = computed(() => {
+    if (circuitSpec.value.inputs.length == 0) return 0;
+    return circuitSpec.value.inputs[0].columns.length;
+  }
 );
 
-function addInput() {
-  circuitSpec.value.inputs.push("?");
+function addTruthTableRow() {
+  circuitSpec.value.inputs.forEach(input => {
+    input.columns.push("0");
+  });
 
-  circuitSpec.value.outputs.forEach((func) => {
-    func.outputs.push(...Array<OutputBit>(func.outputs.length).fill("0"));
+  circuitSpec.value.outputs.forEach(output => {
+    output.columns.push("0");
+  });
+}
+
+function removeTruthTableRow(rowIndex: number) {
+  circuitSpec.value.inputs.forEach(input => {
+    input.columns.splice(rowIndex, 1);
+  });
+
+  circuitSpec.value.outputs.forEach(output => {
+    output.columns.splice(rowIndex, 1);
+  });
+}
+
+function fillAllRows() {
+  //TODO
+}
+
+function removeAllRows() {
+  circuitSpec.value.inputs.forEach(input => {
+    input.columns = [];
+  });
+
+  circuitSpec.value.outputs.forEach(output => {
+    output.columns = []
+  });
+}
+
+function addInput() {
+  circuitSpec.value.inputs.push({
+    name: "?",
+    columns: Array<Bit>(truthTableRows.value).fill("0")
   });
 
   saveCircuit();
@@ -29,25 +64,25 @@ function removeInput(index: number) {
   circuitSpec.value.inputs.splice(index, 1);
 
   circuitSpec.value.outputs.forEach((func) => {
-    func.outputs.splice(func.outputs.length / 2);
+    func.columns.splice(func.columns.length / 2);
   });
 
   saveCircuit();
 }
 
 // Output Table
-type OutputBit = "0" | "1" | "X";
+type Bit = "0" | "1" | "X";
 
-interface LogicFunction {
+interface BitColumn {
   name: string;
-  outputs: Array<OutputBit>;
+  columns: Array<Bit>;
 }
 
 // Output Table
 function addLogicFunction() {
   circuitSpec.value.outputs.push({
     name: "?",
-    outputs: Array<OutputBit>(truthTableRows.value).fill("0"),
+    columns: Array<Bit>(truthTableRows.value).fill("0"),
   });
 
   saveCircuit();
@@ -60,40 +95,48 @@ function removeLogicFunction(index: number) {
   saveCircuit();
 }
 
-function toggleBit(colIndex: number, rowIndex: number) {
-  let value = circuitSpec.value.outputs[colIndex].outputs[rowIndex - 1];
-  if (value == "0")
-    circuitSpec.value.outputs[colIndex].outputs[rowIndex - 1] = "1";
-  else if (value == "1")
-    circuitSpec.value.outputs[colIndex].outputs[rowIndex - 1] = "X";
-  else circuitSpec.value.outputs[colIndex].outputs[rowIndex - 1] = "0";
+function toggleBit(colIndex: number, rowIndex: number, isInputBit: boolean) {
+
+  let value = isInputBit 
+    ? circuitSpec.value.inputs[colIndex].columns[rowIndex - 1] 
+    : circuitSpec.value.outputs[colIndex].columns[rowIndex - 1];
+
+  let newValue = value == "0" ? "1" : (value == "1" ? "X" : "0");
+
+  if (isInputBit) {
+    circuitSpec.value.inputs[colIndex].columns[rowIndex - 1] = newValue as Bit;
+  } else {
+    circuitSpec.value.outputs[colIndex].columns[rowIndex - 1] = newValue as Bit;
+  }
 
   saveCircuit();
 }
 
 // Results
 const minimizedFunctions = computed(() => {
-  return circuitSpec.value.outputs.map((func) => {
-    const minterms = new Set(
-      func.outputs.reduce(
-        (terms, bit, index) => (bit == "1" ? [...terms, index] : terms),
-        [] as Array<number>
-      )
-    );
-    const dontCares = new Set(
-      func.outputs.reduce(
-        (terms, bit, index) => (bit == "X" ? [...terms, index] : terms),
-        [] as Array<number>
-      )
-    );
-    return computeMcClusky(circuitSpec.value.inputs, minterms, dontCares);
-  });
+  // return circuitSpec.value.outputs.map((func) => {
+  //   const minterms = new Set(
+  //     func.outputs.reduce(
+  //       (terms, bit, index) => (bit == "1" ? [...terms, index] : terms),
+  //       [] as Array<number>
+  //     )
+  //   );
+  //   const dontCares = new Set(
+  //     func.outputs.reduce(
+  //       (terms, bit, index) => (bit == "X" ? [...terms, index] : terms),
+  //       [] as Array<number>
+  //     )
+  //   );
+  //   return computeMcClusky(circuitSpec.value.inputs, minterms, dontCares);
+  // });
+
+  []
 });
 
 // Save / Load
 interface CircuitSpec {
-  inputs: Array<string>;
-  outputs: Array<LogicFunction>;
+  inputs: Array<BitColumn>;
+  outputs: Array<BitColumn>;
   name: string;
   id: string
 }
@@ -182,11 +225,24 @@ function newCircuit() {
   circuitSpec.value = {
     id: crypto.randomUUID(),
     name: "New Circuit",
-    inputs: ["S0", "S1", "S2"],
+    inputs: [
+      {
+        name: "S2",
+        columns: new Array<Bit>("0"),
+      },
+      {
+        name: "S1",
+        columns: new Array<Bit>("0"),
+      },
+      {
+        name: "S0",
+        columns: new Array<Bit>("0"),
+      },
+    ],
     outputs: [
       {
         name: "F",
-        outputs: Array<OutputBit>(8).fill("0"),
+        columns: new Array<Bit>("0"),
       },
     ],
   };
@@ -242,7 +298,7 @@ onMounted(() => {
                   <image href="@/assets/icons/cross.svg" />
                 </svg>
               </button>
-              <input @input="saveCircuit()" v-model="circuitSpec.inputs[index]" />
+              <input @input="saveCircuit()" v-model="circuitSpec.inputs[index].name" />
             </div>
           </th>
           <th>
@@ -250,8 +306,12 @@ onMounted(() => {
           </th>
         </tr>
         <tr v-for="rowIndex in truthTableRows">
-          <td class="bit" v-for="colIndex in circuitSpec.inputs.length">
-            {{ ((rowIndex - 1) >> (circuitSpec.inputs.length - colIndex)) & 1 }}
+          <td
+            class="bit"
+            @click="toggleBit(colIndex, rowIndex, true)"
+            v-for="(input, colIndex) in circuitSpec.inputs"
+          >
+            {{ input.columns[rowIndex - 1] }}
           </td>
         </tr>
       </table>
@@ -275,14 +335,19 @@ onMounted(() => {
         <tr v-for="rowIndex in truthTableRows">
           <td
             class="bit"
-            @click="toggleBit(colIndex, rowIndex)"
+            @click="toggleBit(colIndex, rowIndex, false)"
             v-for="(func, colIndex) in circuitSpec.outputs"
           >
-            {{ func.outputs[rowIndex - 1] }}
+            {{ func.columns[rowIndex - 1] }}
+          </td>
+          <td>
+            <button @click="removeTruthTableRow(rowIndex - 1)" class="remove-row-button">-</button>
           </td>
         </tr>
       </table>
     </div>
+
+    <button class="add-row-button" @click="addTruthTableRow">Add Row</button>
 
     <p v-for="(func, index) in minimizedFunctions">
       {{ circuitSpec.outputs[index].name + " = " + func }}
@@ -350,6 +415,19 @@ onMounted(() => {
     }
   }
 }
+
+.add-row-button {
+  background-color: transparent;
+  border: 1px solid white;
+  margin-top: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.164);
+  }
+}
+
 .tables {
   display: flex;
   flex-direction: row;
@@ -373,6 +451,7 @@ onMounted(() => {
         &:hover {
           background-color: rgba(255, 255, 255, 0.164);
         }
+
       }
 
       .table-head {
@@ -418,9 +497,23 @@ onMounted(() => {
       border-left: 1px solid var(--color-table-border);
     }
 
+    .remove-row-button {
+        background-color: transparent;
+        color: white;
+        border: none;
+        cursor: pointer;  
+
+        transition: 0.3s;
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.164);
+        }
+      }
+
     .bit {
       text-align: center;
       user-select: none;
+      cursor: pointer;
     }
   }
 }
